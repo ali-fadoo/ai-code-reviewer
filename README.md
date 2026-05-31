@@ -31,7 +31,7 @@ PR opened/updated
 | Layer | Tech |
 |---|---|
 | Backend | FastAPI, Python 3.12 |
-| AI | Anthropic Claude (claude-sonnet-4-6) |
+| AI | Google Gemini 1.5 Flash (free tier) |
 | Database | SQLite + SQLAlchemy (async) |
 | Frontend | React 18, TypeScript, Tailwind CSS |
 | Deployment | Docker Compose / Railway |
@@ -57,7 +57,7 @@ cp .env.example .env
 ```
 
 Fill in `.env`:
-- `ANTHROPIC_API_KEY` — get one at [console.anthropic.com](https://console.anthropic.com)
+- `GOOGLE_API_KEY` — get one free at [aistudio.google.com](https://aistudio.google.com/app/apikey)
 - `GITHUB_APP_ID` — shown on your GitHub App's settings page
 - `GITHUB_WEBHOOK_SECRET` — the random string you set above
 - `GITHUB_PRIVATE_KEY` — contents of the .pem file, with newlines replaced by `\n`

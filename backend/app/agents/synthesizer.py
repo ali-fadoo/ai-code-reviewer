@@ -1,7 +1,7 @@
-import anthropic
+import google.generativeai as genai
 from ..config import settings
 
-client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+genai.configure(api_key=settings.google_api_key)
 
 SYSTEM_PROMPT = """You are a senior engineer synthesizing a complete, actionable PR review from three specialist reports.
 
@@ -41,18 +41,15 @@ async def run_synthesizer(
     style: str,
     pr_context: dict,
 ) -> str:
-    response = await client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2048,
-        system=SYSTEM_PROMPT,
-        messages=[{
-            "role": "user",
-            "content": (
-                f"PR: {pr_context.get('title', 'N/A')}\n\n"
-                f"=== Security Agent ===\n{security}\n\n"
-                f"=== Logic Agent ===\n{logic}\n\n"
-                f"=== Style Agent ===\n{style}"
-            )
-        }]
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        system_instruction=SYSTEM_PROMPT,
     )
-    return response.content[0].text
+    prompt = (
+        f"PR: {pr_context.get('title', 'N/A')}\n\n"
+        f"=== Security Agent ===\n{security}\n\n"
+        f"=== Logic Agent ===\n{logic}\n\n"
+        f"=== Style Agent ===\n{style}"
+    )
+    response = await model.generate_content_async(prompt)
+    return response.text

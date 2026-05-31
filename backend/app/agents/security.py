@@ -1,7 +1,7 @@
-import anthropic
+import google.generativeai as genai
 from ..config import settings
 
-client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+genai.configure(api_key=settings.google_api_key)
 
 SYSTEM_PROMPT = """You are a specialized security code reviewer. Analyze the provided code diff for security vulnerabilities.
 
@@ -29,17 +29,14 @@ Respond in this exact format:
 
 
 async def run_security_agent(diff: str, pr_context: dict) -> tuple[str, str]:
-    response = await client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=[{
-            "role": "user",
-            "content": f"PR: {pr_context.get('title', 'N/A')}\nAuthor: {pr_context.get('author', 'N/A')}\n\nDiff:\n```diff\n{diff[:8000]}\n```"
-        }]
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        system_instruction=SYSTEM_PROMPT,
     )
+    prompt = f"PR: {pr_context.get('title', 'N/A')}\nAuthor: {pr_context.get('author', 'N/A')}\n\nDiff:\n```diff\n{diff[:8000]}\n```"
+    response = await model.generate_content_async(prompt)
 
-    content = response.content[0].text
+    content = response.text
     severity = "low"
     if "**Severity**: HIGH" in content:
         severity = "high"
