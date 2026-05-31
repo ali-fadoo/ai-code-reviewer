@@ -1,7 +1,7 @@
-import google.generativeai as genai
+from groq import AsyncGroq
 from ..config import settings
 
-genai.configure(api_key=settings.google_api_key)
+client = AsyncGroq(api_key=settings.groq_api_key)
 
 SYSTEM_PROMPT = """You are a specialized code quality and style reviewer. Analyze the provided code diff for maintainability and quality issues.
 
@@ -28,14 +28,16 @@ Respond in this exact format:
 
 
 async def run_style_agent(diff: str, pr_context: dict) -> tuple[str, str]:
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=SYSTEM_PROMPT,
+    response = await client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"PR: {pr_context.get('title', 'N/A')}\nAuthor: {pr_context.get('author', 'N/A')}\n\nDiff:\n```diff\n{diff[:8000]}\n```"}
+        ],
+        max_tokens=1024,
     )
-    prompt = f"PR: {pr_context.get('title', 'N/A')}\nAuthor: {pr_context.get('author', 'N/A')}\n\nDiff:\n```diff\n{diff[:8000]}\n```"
-    response = await model.generate_content_async(prompt)
 
-    content = response.text
+    content = response.choices[0].message.content
     severity = "low"
     if "**Severity**: HIGH" in content:
         severity = "high"

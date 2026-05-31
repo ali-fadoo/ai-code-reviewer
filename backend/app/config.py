@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    google_api_key: str
+    groq_api_key: str
     github_app_id: str
     github_private_key: str
     github_webhook_secret: str
